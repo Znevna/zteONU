@@ -1,10 +1,12 @@
 package factory
 
 import (
+	"crypto/tls"
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -16,12 +18,22 @@ import (
 )
 
 func New(user string, passwd string, ip string, port int) *Factory {
+	transport := &http.Transport{
+		MaxIdleConns:        1,
+		MaxIdleConnsPerHost: 1,
+		MaxConnsPerHost:     1,
+		DisableKeepAlives:   false,
+		TLSClientConfig:     &tls.Config{InsecureSkipVerify: true},
+	}
+
 	return &Factory{
 		user:   user,
 		passwd: passwd,
 		ip:     ip,
 		port:   port,
-		cli: resty.New().SetHeader("User-Agent", "curl/8.8.0-DEV").
+		cli: resty.New().
+			SetTransport(transport).
+			SetHeader("User-Agent", "curl/8.8.0-DEV").
 			SetBaseURL(fmt.Sprintf("http://%s:%d", ip, port)),
 	}
 }
