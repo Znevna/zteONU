@@ -22,7 +22,6 @@ var (
 	port       int
 	permTelnet bool
 	telnetPort int
-	newMode    bool
 	SecLvl	   int
 	userList   []string
 	passwdList []string
@@ -48,34 +47,31 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&permTelnet, "telnet", false, "Enable permanent telnet (user: root, pass: Zte521)")
 	rootCmd.PersistentFlags().IntVar(&SecLvl, "seclvl", 2, "Security level for telnet access, if you got \"Access Denied\", try 3.\nUse with --telnet flag")
 	rootCmd.PersistentFlags().IntVar(&telnetPort, "tp", 23, "ONU telnet port")
-	rootCmd.PersistentFlags().BoolVar(&newMode, "new", false, "Use new method to open telnet, MAC address must set to 00:07:29:55:35:57")
 }
 
 func run() error {
 	version.Show()
 
-	if newMode {
-		interfaces, err := net.Interfaces()
-		if err != nil {
-			return err
-		}
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return err
+	}
 
-		magicMac, err := net.ParseMAC("00:07:29:55:35:57")
-		if err != nil {
-			return err
-		}
+	magicMac, err := net.ParseMAC("00:07:29:55:35:57")
+	if err != nil {
+		return err
+	}
 
-		var isMagicMac bool
-		for _, i := range interfaces {
-			if i.HardwareAddr != nil && bytes.Equal(i.HardwareAddr, magicMac) {
-				isMagicMac = true
-				break
-			}
+	var isMagicMac bool
+	for _, i := range interfaces {
+		if i.HardwareAddr != nil && bytes.Equal(i.HardwareAddr, magicMac) {
+			isMagicMac = true
+			break
 		}
+	}
 
-		if !isMagicMac {
-			return errors.New("MAC address is not set to 00:07:29:55:35:57")
-		}
+	if !isMagicMac {
+		return errors.New("MAC address is not set to 00:07:29:55:35:57. Please spoof your NIC MAC address to proceed")
 	}
 
     // User default lists if user\pass not passed
