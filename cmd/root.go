@@ -25,8 +25,8 @@ var (
 	SecLvl	   int
 	userList   []string
 	passwdList []string
-	defaultUsers = []string{"admin", "factorymode", "CMCCAdmin", "CUAdmin", "telecomadmin", "cqadmin", "user", "admin", "cuadmin", "lnadmin", "useradmin"}
-	defaultPasswds = []string{"admin", "nE%jA@5b", "aDm8H%MdA", "CUAdmin", "nE7jA%5m", "cqunicom", "1620@CTCC", "1620@CUcc", "admintelecom", "cuadmin", "lnadmin"}
+	defaultUsers = []string{"factorymode", "telecomadmin", "admin", "CMCCAdmin", "CUAdmin", "cqadmin", "user", "admin", "cuadmin", "lnadmin", "useradmin"}
+	defaultPasswds = []string{"nE%jA@5b", "nE7jA%5m", "admin", "aDm8H%MdA", "CUAdmin", "cqunicom", "1620@CTCC", "1620@CUcc", "admintelecom", "cuadmin", "lnadmin"}
 
 	rootCmd = &cobra.Command{
 		Use: "zteOnu",
