@@ -244,7 +244,16 @@ func (f *Factory) handle() (tlUser string, tlPass string, err error) {
 	if err != nil {
 		return
 	} else {
-		fmt.Println("ok")
+		switch ver {
+		case 1:
+			fmt.Println("ok (v1/legacy)")
+		case 2:
+			fmt.Println("ok (v2/newrand)")
+		case 3:
+			fmt.Println("ok (v3/re_rand)")
+		default:
+			fmt.Println("ok")
+		}
 	}
 
 	fmt.Print("step [3] check login auth with user: ")
