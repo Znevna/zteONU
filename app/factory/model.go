@@ -1,6 +1,9 @@
 package factory
 
 import (
+	"encoding/binary"
+	"math/big"
+
 	"github.com/go-resty/resty/v2"
 )
 
@@ -33,13 +36,90 @@ var (
 		0x9C, 0x25, 0xA8, 0x92, 0x47, 0xE4, 0x18, 0x0F, 0x24, 0x3F,
 		0x4F, 0x67, 0xEC, 0x97, 0xF4, 0x99,
 	}
+
+	AesKeyPoolReRand = []byte{
+		0x9C, 0x33, 0x75, 0xD1, 0x1C, 0x42, 0x45, 0x37, 0x18, 0x48,
+		0x91, 0x73, 0x17, 0x45, 0x79, 0x44, 0x43, 0xD7, 0xD5, 0x73,
+		0x33, 0x54, 0x76, 0xD2, 0xC5, 0xF1, 0x2C, 0x4F, 0x7A, 0xBA,
+		0x61, 0xD9, 0x5C, 0x69, 0xDF, 0x8C, 0xD2, 0x1C, 0xDE, 0x3B,
+		0x35, 0x2D, 0x2F, 0xE1, 0xDE, 0x4C, 0x77, 0xF5, 0x1A, 0x65,
+		0xD1, 0xFE, 0x18, 0x43, 0x8E, 0xA7, 0x42, 0x08, 0x04, 0x78,
+		0xD5, 0xE4, 0xF3, 0x34, 0xA4, 0xD3, 0xF2, 0x36, 0x47, 0x6D,
+		0x86, 0x9D, 0x42, 0x65, 0x13, 0x42, 0xDC, 0x42, 0x99, 0x48,
+		0xDC, 0x67, 0x9F, 0x9E, 0xDC, 0x46, 0x37, 0x5F, 0x84, 0x9F,
+		0x6F, 0x76, 0xCE, 0x79, 0x4F, 0x49,
+	}
+
+	Header0    uint32
+	Header1    uint32
+	Header1687 uint32
+
+	MacMap [256]uint32
 )
 
+func init() {
+	alphabet := "abcdefghijklmnopqrstuvwxyz"
+	var found [256]bool
+	foundCount := 0
+	headerFound := 0
+
+	exp := big.NewInt(0x1687)
+	mod := big.NewInt(0x7561)
+	numBig := new(big.Int)
+	resBig := new(big.Int)
+
+	for c1 := 0; c1 < len(alphabet); c1++ {
+		for c2 := 0; c2 < len(alphabet); c2++ {
+			for c3 := 0; c3 < len(alphabet); c3++ {
+				for c4 := 0; c4 < len(alphabet); c4++ {
+					// Stop early if everything is found
+					if foundCount == 256 && headerFound == 3 {
+						return
+					}
+
+					b := []byte{alphabet[c1], alphabet[c2], alphabet[c3], alphabet[c4]}
+					num := binary.LittleEndian.Uint32(b)
+
+					// 1. MAC Encoding: pow(num, 1, 0x1687) & 0xFF -> (num % 0x1687) & 0xFF
+					if foundCount < 256 {
+						res := (num % 0x1687) & 0xFF
+
+						if !found[res] {
+							found[res] = true
+							MacMap[res] = num
+							foundCount++
+						}
+					}
+
+					// 2. Header Encoding: pow(num, 0x1687, 0x7561)
+					if headerFound < 3 {
+						numBig.SetUint64(uint64(num))
+						resBig.Exp(numBig, exp, mod)
+						resUint := resBig.Uint64()
+
+						if resUint == 0 && Header0 == 0 {
+							Header0 = num
+							headerFound++
+						} else if resUint == 1 && Header1 == 0 {
+							Header1 = num
+							headerFound++
+						} else if resUint == 0x1687 && Header1687 == 0 {
+							Header1687 = num
+							headerFound++
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 type Factory struct {
-	user   string
-	passwd string
-	ip     string
-	port   int
-	cli    *resty.Client
-	key    []byte
+	user      string
+	passwd    string
+	ip        string
+	port      int
+	cli       *resty.Client
+	key       []byte
+	serverMac []byte
 }

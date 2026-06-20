@@ -2,6 +2,7 @@ package factory
 
 import (
 	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"net/url"
@@ -64,7 +65,21 @@ func (f *Factory) sendSq() (uint8, error) {
 		return 0, errors.New(resp.String())
 	}
 
-	if strings.Contains(resp.String(), "newrand") {
+	if strings.Contains(resp.String(), "re_rand=") {
+		version = 3
+		// e.g. re_rand=12345&67890&abcdef
+		parts := strings.Split(resp.String(), "re_rand=")
+		if len(parts) > 1 {
+			params := strings.Split(parts[1], "&")
+			if len(params) >= 3 {
+				newRand, _ := strconv.Atoi(params[0])
+				// The MAC is the third parameter. On older routers it may be missing the last character.
+				// For minimal changes, we'll just extract it as bytes.
+				f.serverMac = []byte(strings.TrimSpace(params[2]))
+				f.key = getKeyPool(version, r, newRand)
+			}
+		}
+	} else if strings.Contains(resp.String(), "newrand") {
 		version = 2
 		newRand, _ := strconv.Atoi(strings.ReplaceAll(resp.String(), "newrand=", ""))
 		f.key = getKeyPool(version, r, newRand)
@@ -106,15 +121,45 @@ func (f *Factory) checkLoginAuth() error {
 	}
 }
 
-func (f *Factory) sendInfo() error {
-	command := []byte("SendInfo.gch?info=12|")
-	magicBytes, err := base64.StdEncoding.DecodeString(magicBytesBase64)
-	if err != nil {
-		return err
-	}
-	command = append(command, magicBytes...)
+func (f *Factory) sendInfo(version uint8) error {
+	var commandStr string
 
-	payload, err := utils.ECBEncrypt(command, f.key)
+	if version == 2 {
+		command := []byte("SendInfo.gch?info=12|")
+		magicBytes, err := base64.StdEncoding.DecodeString(magicBytesBase64)
+		if err != nil {
+			return err
+		}
+		command = append(command, magicBytes...)
+		commandStr = string(command)
+	} else if version == 3 {
+		localMac := []byte{0x00, 0x07, 0x29, 0x55, 0x35, 0x57}
+
+		var payloadArr []uint32
+		payloadArr = append(payloadArr, Header0, Header1, Header0, Header1687)
+		for _, b := range f.serverMac {
+			payloadArr = append(payloadArr, MacMap[b])
+		}
+		for _, b := range localMac {
+			payloadArr = append(payloadArr, MacMap[b])
+		}
+		for _, b := range localMac {
+			payloadArr = append(payloadArr, MacMap[b])
+		}
+
+		var payloadStrBuilder strings.Builder
+		for _, p := range payloadArr {
+			b := make([]byte, 4)
+			binary.LittleEndian.PutUint32(b, p)
+			payloadStrBuilder.Write(b)
+		}
+
+		commandStr = fmt.Sprintf("SendInfo.gch?info=%d|%s", len(payloadArr), payloadStrBuilder.String())
+	} else {
+		return errors.New("unsupported version for sendInfo")
+	}
+
+	payload, err := utils.ECBEncrypt([]byte(commandStr), f.key)
 	if err != nil {
 		return err
 	}
@@ -197,7 +242,14 @@ func (f *Factory) handle() (tlUser string, tlPass string, err error) {
 			return
 		}
 	case 2:
-		if err = f.sendInfo(); err != nil {
+		if err = f.sendInfo(ver); err != nil {
+			return
+		}
+		if err = f.checkLoginAuth(); err != nil {
+			return
+		}
+	case 3:
+		if err = f.sendInfo(ver); err != nil {
 			return
 		}
 		if err = f.checkLoginAuth(); err != nil {
@@ -229,11 +281,20 @@ func (f *Factory) Handle() (tlUser string, tlPass string, err error) {
 
 func getKeyPool(version uint8, r int, newR int) []byte {
 	idx := r
-	keyPool := AesKeyPool[idx : idx+24]
-	if version == 2 {
+	var keyPool []byte
+
+	if version == 1 {
+		keyPool = AesKeyPool[idx : idx+24]
+	} else if version == 2 {
 		idx = ((0x1000193*r)&0x3F ^ newR) % 60
 		keyPool = AesKeyPoolNew[idx : idx+24]
+	} else if version == 3 {
+		client_rand_mix := 0x1000193 * r
+		client_rand_mask := client_rand_mix & 0x8000003F
+		idx = (client_rand_mask ^ newR) % 60
+		keyPool = AesKeyPoolReRand[idx : idx+24]
 	}
+
 	newKeyPool := make([]byte, len(keyPool))
 	for i := range keyPool {
 		newKeyPool[i] = (keyPool[i] ^ 0xA5) & 0xFF
