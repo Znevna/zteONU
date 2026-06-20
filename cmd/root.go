@@ -9,9 +9,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/stich86/zteOnu/app/factory"
-	"github.com/stich86/zteOnu/app/telnet"
-	"github.com/stich86/zteOnu/version"
+	"github.com/Znevna/zteONU/app/factory"
+	"github.com/Znevna/zteONU/app/telnet"
+	"github.com/Znevna/zteONU/version"
 )
 
 var (

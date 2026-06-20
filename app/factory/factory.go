@@ -14,7 +14,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 
-	"github.com/stich86/zteOnu/utils"
+	"github.com/Znevna/zteONU/utils"
 )
 
 func New(user string, passwd string, ip string, port int) *Factory {
