@@ -15,3 +15,7 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -X github.com/Znevna/zteONU/version.version={{.Version}} -X github.com/Znevna/zteONU/version.date={{.Date}}
+
+archives:
+  - format: binary
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
