@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -40,8 +41,9 @@ var (
 
 
 func init() {
+	rootCmd.CompletionOptions.DisableDefaultCmd = true
 	rootCmd.PersistentFlags().StringVarP(&user, "user", "u", "", "Factory mode auth username (If not provided, a known list will be used)")
-	rootCmd.PersistentFlags().StringVarP(&passwd, "pass", "p", "", "Factory mode auth passwordi (If not provided, a known list will be used)")
+	rootCmd.PersistentFlags().StringVarP(&passwd, "pass", "p", "", "Factory mode auth password (If not provided, a known list will be used)")
 	rootCmd.PersistentFlags().StringVarP(&ip, "ip", "i", "192.168.1.1", "ONU ip address")
 	rootCmd.PersistentFlags().IntVar(&port, "port", 80, "ONU http port")
 	rootCmd.PersistentFlags().BoolVar(&permTelnet, "telnet", false, "Enable permanent telnet (user: root, pass: Zte521)")
@@ -87,7 +89,7 @@ func run() error {
     }
     // Check list size
 	if len(userList) != len(passwdList) {
-		return errors.New("Users and Passwords list should have same lenght")
+		return errors.New("Users and Passwords list should have same length")
 	}
 
     var tlUser string 
@@ -101,12 +103,12 @@ func run() error {
 
             tlUser, tlPass, err = factory.New(userList[i], passwdList[i], ip, port).Handle()
             if err != nil {
-                fmt.Println(err, fmt.Sprintf("Attempt retrying..(%d/5)", count))
+                fmt.Printf("\n  -> Error: %v\n  -> Attempt %d/5 failed, retrying...\n", err, count)
                 time.Sleep(time.Millisecond * 500)
                 continue
             }
 
-            fmt.Printf("Success authenticated with user: %s and password: %s\n", userList[i], passwdList[i])
+            fmt.Printf("Successfully authenticated with user: %s and password: %s\n", userList[i], passwdList[i])
             success = true
             break
         }
@@ -128,17 +130,18 @@ func run() error {
 		if err := t.PermTelnet(SecLvl); err != nil {
 			return err
 		} else {
-			fmt.Println("Permanent Telnet succeed\r\nUser: root\nPass: Zte521")
+			fmt.Println("Permanent Telnet succeeded\r\nUser: root\nPass: Zte521")
 		}
 
 		// reboot device
-		fmt.Println("Wait reboot.. or powercycle it")
+		fmt.Println("Wait for reboot... or manually power cycle it")
 		time.Sleep(time.Second)
 		if err := t.Reboot(); err != nil {
 			return err
 		}
 	} else {
 		if tlUser != "" && tlPass != "" {
+			fmt.Println(strings.Repeat("-", 35))
  		   fmt.Printf("Telnet Credentials (!! Temporary !!)\nUser: %s\nPass: %s\n", tlUser, tlPass)
 		}	
 	}

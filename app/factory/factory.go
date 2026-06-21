@@ -125,9 +125,9 @@ func (f *Factory) checkLoginAuth() error {
 		}
 		return nil
 	case 400:
-		return errors.New("unknown errors")
+		return errors.New("HTTP 400: Bad Request")
 	case 401:
-		return errors.New("errors user or password")
+		return errors.New("HTTP 401: Invalid credentials or ONT is not in factory mode")
 	default:
 		return errors.New(resp.String())
 	}
@@ -184,9 +184,9 @@ func (f *Factory) sendInfo(version uint8) error {
 	case 200:
 		return nil
 	case 400:
-		return errors.New("unknown errors")
+		return errors.New("HTTP 400: Bad Request")
 	case 401:
-		return errors.New("info error")
+		return errors.New("HTTP 401: Unauthorized (SendInfo payload rejected)")
 	default:
 		return errors.New(resp.String())
 	}
@@ -224,14 +224,14 @@ func (f *Factory) factoryMode() (user string, pass string, err error) {
 func (f *Factory) handle() (tlUser string, tlPass string, err error) {
 	fmt.Println(strings.Repeat("-", 35))
 
-	fmt.Print("step [0] reset factory: ")
+	fmt.Print("step [0] Reset factory state: ")
 	if err = f.reset(); err != nil {
 		return
 	} else {
 		fmt.Println("ok")
 	}
 
-	fmt.Print("step [1] request factory mode: ")
+	fmt.Print("step [1] Request factory mode: ")
 	if err = f.reqFactoryMode(); err != nil {
 		return
 	} else {
@@ -239,7 +239,7 @@ func (f *Factory) handle() (tlUser string, tlPass string, err error) {
 	}
 
 	var ver uint8
-	fmt.Print("step [2] send sq: ")
+	fmt.Print("step [2] Negotiate authentication (SendSq): ")
 	ver, err = f.sendSq()
 	if err != nil {
 		return
@@ -256,7 +256,7 @@ func (f *Factory) handle() (tlUser string, tlPass string, err error) {
 		}
 	}
 
-	fmt.Print("step [3] check login auth with user: ")
+	fmt.Printf("step [3] Check login auth (%s / %s): ", f.user, f.passwd)
 	switch ver {
 	case 1:
 		if err = f.checkLoginAuth(); err != nil {
@@ -279,7 +279,7 @@ func (f *Factory) handle() (tlUser string, tlPass string, err error) {
 	}
 	fmt.Println("ok")
 
-	fmt.Print("step [4] enter factory mode: ")
+	fmt.Print("step [4] Extract temporary Telnet credentials: ")
 	tlUser, tlPass, err = f.factoryMode()
 	if err != nil {
 		return
