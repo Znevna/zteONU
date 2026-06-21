@@ -1,5 +1,5 @@
 # zteOnu
-This is a fork from original [project](https://github.com/Septrum101/zteOnu) with some changes.
+This is a fork from original [project](https://github.com/Septrum101/zteOnu) with changes from this [fork](https://github.com/stich86/zteOnu) and then some.
 
 You **MUST** manually spoof the MAC address of your NIC to `00:07:29:55:35:57` before running this tool. The tool will strictly enforce this check.
 
@@ -34,11 +34,9 @@ Flags:
 
 # Tested ONTs
 
-| ONT     | Firmware                | Result                                             | Issues                                        |
-|---------|-------------------------|----------------------------------------------------|-----------------------------------------------|
-| F601V6  | V6.0.10P6N7 (OpenFiber) | Open Telnet (with known OF credentials)            | Permanent Telnet doesn't have full privileges |
-| F601V6  | V6.0.10N40 (TIM)        | Open Telnet                                        | Permanent Telnet doesn't have full privileges |
-| F601V7  | V7.0.10P6N7 (OpenFiber) | Open Telnet (with known OF credentials)            | Permanent Telnet doesn't have full privileges |
-| F601V9  | V9.0.10P2N1 (OpenFiber) | Open Telnet (with known OF credentials)            | Permanent Telnet doesn't have full privileges |
-| F6005V3 | V3.0.10P3N2 (OpenFiber) | Open Telnet (with known OF credentials)            |                                               |
-| F6005V3 | V3.0.10N06 (TIM)        | Open Telnet with `--new` flag and mac-addr changed |                                               |
+| Hardware  | Firmware      | Result     | Issues                                        |
+|-----------|---------------|------------|-----------------------------------------------|
+| F6605RV3  | F660505RO     | Ok         |                                               |
+| F6605RV3  | F660506RO     | Ok         |                                               |
+| F6605RV3  | F660504RT     | Ok ?       |                                               |
+| F6600V903 | F660012RO     | Ok         | Permanent Telnet doesn't have full privileges |
