@@ -1,6 +1,6 @@
 module github.com/Znevna/zteONU
 
-go 1.25.0
+go 1.26.4
 
 require (
 	github.com/go-resty/resty/v2 v2.17.2
