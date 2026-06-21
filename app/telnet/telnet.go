@@ -10,9 +10,20 @@ import (
 )
 
 func New(user string, pass string, ip string, port int) (*Telnet, error) {
-	conn, err := net.Dial("tcp", fmt.Sprintf("%s:%d", ip, port))
+	var conn net.Conn
+	var err error
+
+	for i := 0; i < 5; i++ {
+		conn, err = net.Dial("tcp", fmt.Sprintf("%s:%d", ip, port))
+		if err == nil {
+			break
+		}
+		fmt.Printf("Telnet connection failed, retrying (%d/5)...\n", i+1)
+		time.Sleep(500 * time.Millisecond)
+	}
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to connect to telnet after retries: %v", err)
 	}
 
 	t := &Telnet{
