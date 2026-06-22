@@ -79,7 +79,14 @@ func run() error {
 	}
 
 	if !isMagicMac {
-		return errors.New("MAC address is not set to 00:07:29:55:35:57. Please spoof your NIC MAC address to proceed")
+		return errors.New(`
+======================================================================
+ [ ERROR: LOCAL MAC ADDRESS VERIFICATION FAILED ]
+
+ You MUST spoof your NIC MAC address to:  00:07:29:55:35:57
+
+ Please apply the spoofed MAC and run the tool again.
+======================================================================`)
 	}
 
     // User default lists if user\pass not passed
