@@ -40,6 +40,7 @@ var (
 			}
 		},
 	}
+	showVersion    bool
 )
 
 func init() {
@@ -54,10 +55,14 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&zadmin, "zadmin", false, "Add zadmin user (password: dynamically generated)")
 	rootCmd.PersistentFlags().BoolVar(&disableV6, "disable-lan-v6", false, "Disable LAN RA/DHCPv6 services and block them on LAN1")
 	rootCmd.PersistentFlags().BoolVar(&reboot, "reboot", false, "Reboot the ONU after applying changes")
+	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Print current version of zteOnu")
 }
 
 func run() error {
 	version.Show()
+	if showVersion {
+		return nil
+	}
 
 	interfaces, err := net.Interfaces()
 	if err != nil {

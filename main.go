@@ -1,13 +1,13 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/Znevna/zteONU/cmd"
 )
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		log.Panicln(err)
+		os.Exit(1)
 	}
 }
