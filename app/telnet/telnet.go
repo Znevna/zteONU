@@ -18,7 +18,8 @@ func New(user string, pass string, ip string, port int) (*Telnet, error) {
 		if err == nil {
 			break
 		}
-		fmt.Printf("Telnet connection failed, retrying (%d/5)...\n", i+1)
+		errMsg := strings.TrimPrefix(err.Error(), fmt.Sprintf("dial tcp %s:%d: ", ip, port))
+		fmt.Printf("[%d/5] Telnet connection failed (%s). Retrying...\n", i+1, errMsg)
 		time.Sleep(500 * time.Millisecond)
 	}
 

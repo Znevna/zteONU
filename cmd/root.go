@@ -116,10 +116,16 @@ func run() error {
 
             tlUser, tlPass, err = factory.New(userList[i], passwdList[i], ip, port).Handle()
             if err != nil {
-                fmt.Printf("\n  -> Error: %v\n  -> Attempt %d/5 failed, retrying...\n", err, count)
-                time.Sleep(time.Millisecond * 500)
-                continue
-            }
+				errMsg := err.Error()
+				if idx := strings.Index(errMsg, "connectex:"); idx != -1 {
+					errMsg = errMsg[idx:]
+				} else if idx := strings.Index(errMsg, "dial tcp"); idx != -1 {
+					errMsg = errMsg[idx:]
+				}
+				fmt.Printf("\n  -> [%d/5] Payload delivery failed (%s). Retrying...\n", count, errMsg)
+				time.Sleep(time.Millisecond * 500)
+				continue
+			}
 
             fmt.Printf("Successfully authenticated with user: %s and password: %s\n", userList[i], passwdList[i])
             success = true
