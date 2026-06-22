@@ -17,19 +17,19 @@ import (
 
 var (
 	// Used for flags.
-	user       string
-	passwd     string
-	ip         string
-	port       int
-	permTelnet bool
-	telnetPort int
-	SecLvl	   int
-	zadmin     bool
-	disableV6  bool
-	reboot     bool
-	userList   []string
-	passwdList []string
-	defaultUsers = []string{"factorymode", "telecomadmin", "admin", "CMCCAdmin", "CUAdmin", "cqadmin", "user", "admin", "cuadmin", "lnadmin", "useradmin"}
+	user           string
+	passwd         string
+	ip             string
+	port           int
+	permTelnet     bool
+	telnetPort     int
+	SecLvl         int
+	zadmin         bool
+	disableV6      bool
+	reboot         bool
+	userList       []string
+	passwdList     []string
+	defaultUsers   = []string{"factorymode", "telecomadmin", "admin", "CMCCAdmin", "CUAdmin", "cqadmin", "user", "admin", "cuadmin", "lnadmin", "useradmin"}
 	defaultPasswds = []string{"nE%jA@5b", "nE7jA%5m", "admin", "aDm8H%MdA", "CUAdmin", "cqunicom", "1620@CTCC", "1620@CUcc", "admintelecom", "cuadmin", "lnadmin"}
 
 	rootCmd = &cobra.Command{
@@ -41,7 +41,6 @@ var (
 		},
 	}
 )
-
 
 func init() {
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
@@ -89,33 +88,33 @@ func run() error {
 ======================================================================`)
 	}
 
-    // User default lists if user\pass not passed
-    if user == "" {
-        userList = defaultUsers
-    } else {
-        userList = []string{user}
-    }
-    if passwd == "" {
-        passwdList = defaultPasswds
-    } else {
-        passwdList = []string{passwd} 
-    }
-    // Check list size
+	// User default lists if user\pass not passed
+	if user == "" {
+		userList = defaultUsers
+	} else {
+		userList = []string{user}
+	}
+	if passwd == "" {
+		passwdList = defaultPasswds
+	} else {
+		passwdList = []string{passwd}
+	}
+	// Check list size
 	if len(userList) != len(passwdList) {
 		return errors.New("Users and Passwords list should have same length")
 	}
 
-    var tlUser string 
-    var tlPass string
+	var tlUser string
+	var tlPass string
 
-    success := false
-    for i := 0; i < len(userList); i++ {
+	success := false
+	for i := 0; i < len(userList); i++ {
 
-        var err error
-        for count := 1; count <= 5; count++ {
+		var err error
+		for count := 1; count <= 5; count++ {
 
-            tlUser, tlPass, err = factory.New(userList[i], passwdList[i], ip, port).Handle()
-            if err != nil {
+			tlUser, tlPass, err = factory.New(userList[i], passwdList[i], ip, port).Handle()
+			if err != nil {
 				errMsg := err.Error()
 				if idx := strings.Index(errMsg, "connectex:"); idx != -1 {
 					errMsg = errMsg[idx:]
@@ -127,15 +126,15 @@ func run() error {
 				continue
 			}
 
-            fmt.Printf("Successfully authenticated with user: %s and password: %s\n", userList[i], passwdList[i])
-            success = true
-            break
-        }
+			fmt.Printf("Successfully authenticated with user: %s and password: %s\n", userList[i], passwdList[i])
+			success = true
+			break
+		}
 
-        if success {
-            break
-        }
-    }
+		if success {
+			break
+		}
+	}
 	if tlUser != "" && tlPass != "" {
 		fmt.Println(strings.Repeat("-", 35))
 		fmt.Printf("Telnet Credentials (!! Temporary !!)\nUser: %s\nPass: %s\n", tlUser, tlPass)

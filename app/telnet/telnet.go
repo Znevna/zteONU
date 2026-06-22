@@ -57,7 +57,6 @@ func (t *Telnet) PermTelnet(SecLvl int, tempPass string) error {
 	return nil
 }
 
-
 func (t *Telnet) loginTelnet() error {
 	// Wait for login prompt
 	t.expect("Login: ", "Username: ")

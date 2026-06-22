@@ -293,11 +293,11 @@ func (f *Factory) handle() (tlUser string, tlPass string, err error) {
 }
 
 func (f *Factory) Handle() (tlUser string, tlPass string, err error) {
-    tlUser, tlPass, err = f.handle()
-    if err != nil {
-        return "", "", err 
-    }
-    return tlUser, tlPass, nil 
+	tlUser, tlPass, err = f.handle()
+	if err != nil {
+		return "", "", err
+	}
+	return tlUser, tlPass, nil
 }
 
 func getKeyPool(version uint8, r int, newR int) []byte {
